@@ -1,2 +1,2 @@
 # angular-gantt-demo
-private angular-gantt demo
+play with angular-gantt
