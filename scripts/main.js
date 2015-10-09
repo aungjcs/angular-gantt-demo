@@ -184,6 +184,8 @@ angular.module( 'angularGanttDemoApp' )
 
                         api.tasks.on.moveEnd( $scope, function( task ) {
 
+                            return;
+
                             if ( task.row.tasks.length > 1 ) {
 
                                 // var row = task.row;
@@ -222,15 +224,116 @@ angular.module( 'angularGanttDemoApp' )
                         // api.tasks.on.resizeEnd( $scope, addEventName( 'tasks.on.resizeEnd', logTaskEvent ) );
                     }
 
+                    api.tasks.on.moveEnd( $scope, function( task ) {
+
+                        var duplicate;
+
+                        duplicate = _.find( $scope.allTasks, function( v ) {
+
+                            var tf, tt, vf, vt;
+
+                            tf = task.model.from.format( 'YYYYMMDD' );
+                            tt = task.model.to.format( 'YYYYMMDD' );
+                            vf = v.from.format( 'YYYYMMDD' );
+                            vt = v.to.format( 'YYYYMMDD' );
+
+                            if ( task.model.id === v.id ) {
+
+                                return false;
+                            }
+
+                            if ( tf >= vf && tf <= vt ) {
+
+                                return true;
+                            }
+
+                            if ( tt >= vf && tt <= vt ) {
+
+                                return true;
+                            }
+
+                            if ( tf <= vf && tt >= vt ) {
+
+                                return true;
+                            }
+
+                            if ( tf >= vf && tt <= vt ) {
+
+                                return true;
+                            }
+
+                            return false;
+                        });
+
+                        console.log( 'duplicate', duplicate );
+                    });
+
                     // api.rows.on.add( $scope, addEventName( 'rows.on.add', logRowEvent ) );
                     // api.rows.on.change( $scope, addEventName( 'rows.on.change', logRowEvent ) );
                     // api.rows.on.move( $scope, addEventName( 'rows.on.move', logRowEvent ) );
+
+                    function findDuplicate( task ) {
+
+                        return _.find( $scope.allTasks, function( v ) {
+
+                            var tf, tt, vf, vt;
+
+                            tf = task.model.from.format( 'YYYYMMDD' );
+                            tt = task.model.to.format( 'YYYYMMDD' );
+                            vf = v.from.format( 'YYYYMMDD' );
+                            vt = v.to.format( 'YYYYMMDD' );
+
+                            if ( task.model.id === v.id ) {
+
+                                return false;
+                            }
+
+                            if ( tf >= vf && tf <= vt ) {
+
+                                return true;
+                            }
+
+                            if ( tt >= vf && tt <= vt ) {
+
+                                return true;
+                            }
+
+                            if ( tf <= vf && tt >= vt ) {
+
+                                return true;
+                            }
+
+                            if ( tf >= vf && tt <= vt ) {
+
+                                return true;
+                            }
+
+                            return false;
+                        });
+                    }
 
                     api.tasks.on.move( $scope, function( task ) {
 
                         task.$element.removeClass( 'error' );
 
                         if ( task.row.tasks.length > 1 ) {
+
+                            // task.$element.addClass( 'error' );
+                        }
+
+                        if ( findDuplicate( task ) ) {
+
+                            task.$element.addClass( 'error' );
+                        }
+
+                        // console.log( 'tasks.on.change' );
+                    });
+
+                    api.tasks.on.resize( $scope, function( task ) {
+
+                        task.$element.removeClass( 'error' );
+
+                        if ( findDuplicate( task ) ) {
 
                             task.$element.addClass( 'error' );
                         }
@@ -306,6 +409,7 @@ angular.module( 'angularGanttDemoApp' )
                                         return v.id === directiveScope.task.model.id;
                                     });
 
+                                    $scope.mapTasks();
                                     api.rows.refresh();
                                     $scope.$applyAsync();
                                 }
@@ -445,19 +549,23 @@ angular.module( 'angularGanttDemoApp' )
         // Reload data action
         $scope.load = function() {
 
-            var allTasks = [];
-
             $scope.data = Sample.getSampleData();
             dataToRemove = undefined;
+
+            // $scope.timespans = Sample.getSampleTimespans();
+            $scope.mapTasks();
+        };
+
+        $scope.mapTasks = function() {
+
+            var allTasks = [];
 
             $scope.data.forEach(function( row ) {
 
                 allTasks = allTasks.concat( row.tasks || []);
             });
 
-            // console.log('allTasks', allTasks);
-
-            // $scope.timespans = Sample.getSampleTimespans();
+            $scope.allTasks = allTasks;
         };
 
         $scope.reload = function() {
