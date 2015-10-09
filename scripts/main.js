@@ -1,3 +1,4 @@
+/*global angular: true*/
 'use strict';
 
 /**
@@ -16,6 +17,8 @@ angular.module( 'angularGanttDemoApp' )
         $scope.options = {
             mode: 'custom',
             scale: 'day',
+
+            // viewScale: 'day',
             sortMode: undefined,
             sideMode: 'Tree',
             daily: true,
@@ -52,23 +55,23 @@ angular.module( 'angularGanttDemoApp' )
             },
             autoExpand: 'none',
             taskOutOfRange: 'truncate',
-            fromDate: moment( null ),
-            toDate: undefined,
+            fromDate: new Date( 2013, 9, 1 ),
+            toDate: new Date( 2013, 10, 30 ),
             rowContent: '<i class="fa fa-align-justify"></i> {{row.model.name}}',
             taskContent: '<i class="fa fa-tasks"></i> {{task.model.name}}',
             allowSideResizing: true,
             labelsEnabled: true,
-            currentDate: 'line',
+            currentDate: 'column',
             currentDateValue: new Date( 2013, 9, 23, 11, 20, 0 ),
             draw: false,
             readOnly: false,
-            groupDisplayMode: 'group',
+            groupDisplayMode: 'Disabled',
             filterTask: '',
             filterRow: '',
-            timeFrames: {
+            /*timeFrames: {
                 'day': {
-                    start: moment( '8:00', 'HH:mm' ),
-                    end: moment( '20:00', 'HH:mm' ),
+                    start: moment( '0:00', 'HH:mm' ),
+                    end: moment( '23:59', 'HH:mm' ),
                     color: '#ACFFA3',
                     working: true,
                     default: true
@@ -107,10 +110,16 @@ angular.module( 'angularGanttDemoApp' )
                     },
                     targets: ['holiday']
                 }
-            },
+            },*/
             timeFramesWorkingMode: 'hidden',
             timeFramesNonWorkingMode: 'hidden',
-            columnMagnet: '1 day',
+
+            // columnMagnet: '1 day',
+            // columnMagnet: '1 hour',
+            columnMagnet: '1 minute',
+
+            // columnMagnet: '1 second',
+            // columnMagnet: '23 hours',
             timeFramesMagnet: false,
             canDraw: function( event ) {
 
@@ -133,87 +142,138 @@ angular.module( 'angularGanttDemoApp' )
                 api.core.on.ready( $scope, function() {
 
                     // Log various events to console
-                    api.scroll.on.scroll( $scope, logScrollEvent );
-                    api.core.on.ready( $scope, logReadyEvent );
+                    // api.scroll.on.scroll( $scope, logScrollEvent );
+                    // api.core.on.ready( $scope, logReadyEvent );
 
-                    api.data.on.remove( $scope, addEventName( 'data.on.remove', logDataEvent ) );
-                    api.data.on.load( $scope, addEventName( 'data.on.load', logDataEvent ) );
-                    api.data.on.clear( $scope, addEventName( 'data.on.clear', logDataEvent ) );
-                    api.data.on.change( $scope, addEventName( 'data.on.change', logDataEvent ) );
+                    // api.data.on.remove( $scope, addEventName( 'data.on.remove', logDataEvent ) );
+                    // api.data.on.load( $scope, addEventName( 'data.on.load', logDataEvent ) );
+                    // api.data.on.clear( $scope, addEventName( 'data.on.clear', logDataEvent ) );
+                    // api.data.on.change( $scope, addEventName( 'data.on.change', logDataEvent ) );
 
-                    api.tasks.on.add( $scope, addEventName( 'tasks.on.add', logTaskEvent ) );
-                    api.tasks.on.change( $scope, addEventName( 'tasks.on.change', logTaskEvent ) );
-                    api.tasks.on.rowChange( $scope, addEventName( 'tasks.on.rowChange', logTaskEvent ) );
-                    api.tasks.on.remove( $scope, addEventName( 'tasks.on.remove', logTaskEvent ) );
+                    // api.tasks.on.add( $scope, addEventName( 'tasks.on.add', logTaskEvent ) );
+                    // api.tasks.on.change( $scope, addEventName( 'tasks.on.change', logTaskEvent ) );
+
+                    api.tasks.on.change( $scope, function( task ) {
+
+                        // task.model.from.hours( 0 ).minutes( 0 ).seconds( 0 ).milliseconds( 0 );
+                        // task.model.to.hours( 23 ).minutes( 59 ).seconds( 59 ).milliseconds( 0 );
+                        // console.log( 'task change', task );
+                    });
+
+                    // api.tasks.on.rowChange( $scope, addEventName( 'tasks.on.rowChange', logTaskEvent ) );
+                    // api.tasks.on.remove( $scope, addEventName( 'tasks.on.remove', logTaskEvent ) );
 
                     if ( api.tasks.on.moveBegin ) {
 
-                        api.tasks.on.moveBegin( $scope, addEventName( 'tasks.on.moveBegin', logTaskEvent ) );
+                        // api.tasks.on.moveBegin( $scope, addEventName( 'tasks.on.moveBegin', logTaskEvent ) );
 
                         api.tasks.on.moveBegin( $scope, function( task ) {
 
-                            console.log( 'moveBegin', angular.extend({}, task ) );
+                            console.clear();
+
+                            task.original = {
+                                model: angular.extend({}, task.model ),
+                                rowModel: angular.extend({}, task.row.model )
+                            };
+
+                            // console.log( 'moveBegin', task.originalRow.model.id );
                         });
 
                         //api.tasks.on.move($scope, addEventName('tasks.on.move', logTaskEvent));
-                        api.tasks.on.moveEnd( $scope, addEventName( 'tasks.on.moveEnd', logTaskEvent ) );
+                        // api.tasks.on.moveEnd( $scope, addEventName( 'tasks.on.moveEnd', logTaskEvent ) );
 
                         api.tasks.on.moveEnd( $scope, function( task ) {
 
-                            console.log( 'moveEnd', angular.extend({}, task ) );
+                            if ( task.row.tasks.length > 1 ) {
+
+                                // var row = task.row;
+                                var originalRowId = task.original.rowModel.id;
+
+                                // 期間を戻す
+                                task.model.from = task.original.model.from;
+                                task.model.to = task.original.model.to;
+
+                                // 移動先行から削除
+                                task.row.tasks = _.reject( task.row.tasks, function( v ) {
+
+                                    return task.model.id === v.model.id;
+                                });
+
+                                // 元の行に戻す
+                                var originalRow = _.find( $scope.data, function( v ) {
+
+                                    return v.id === originalRowId;
+                                });
+
+                                originalRow.tasks.push( task.model );
+
+                                api.rows.refresh();
+                                $scope.$applyAsync();
+                            }
+
+                            // console.log( 'task.original.row.model', task.original.row );
+                            // console.log( 'task.row.model', task.row );
+                            console.log( 'moveEnd', task.model.from.format( 'MM/DD' ), task.model.to.format( 'MM/DD' ) );
                         });
 
-                        api.tasks.on.resizeBegin( $scope, addEventName( 'tasks.on.resizeBegin', logTaskEvent ) );
+                        // api.tasks.on.resizeBegin( $scope, addEventName( 'tasks.on.resizeBegin', logTaskEvent ) );
 
                         //api.tasks.on.resize($scope, addEventName('tasks.on.resize', logTaskEvent));
-                        api.tasks.on.resizeEnd( $scope, addEventName( 'tasks.on.resizeEnd', logTaskEvent ) );
+                        // api.tasks.on.resizeEnd( $scope, addEventName( 'tasks.on.resizeEnd', logTaskEvent ) );
                     }
 
-                    api.rows.on.add( $scope, addEventName( 'rows.on.add', logRowEvent ) );
-                    api.rows.on.change( $scope, addEventName( 'rows.on.change', logRowEvent ) );
-                    api.rows.on.move( $scope, addEventName( 'rows.on.move', logRowEvent ) );
+                    // api.rows.on.add( $scope, addEventName( 'rows.on.add', logRowEvent ) );
+                    // api.rows.on.change( $scope, addEventName( 'rows.on.change', logRowEvent ) );
+                    // api.rows.on.move( $scope, addEventName( 'rows.on.move', logRowEvent ) );
 
-                    api.tasks.on.move( $scope, function( task, fromRow ) {
+                    api.tasks.on.move( $scope, function( task ) {
 
-                        console.log( 'move', task.row.model.name, task.model );
+                        task.$element.removeClass( 'error' );
+
+                        if ( task.row.tasks.length > 1 ) {
+
+                            task.$element.addClass( 'error' );
+                        }
+
+                        // console.log( 'tasks.on.change' );
                     });
 
-                    api.rows.on.remove( $scope, addEventName( 'rows.on.remove', logRowEvent ) );
+                    // api.rows.on.remove( $scope, addEventName( 'rows.on.remove', logRowEvent ) );
 
-                    api.side.on.resizeBegin( $scope, addEventName( 'labels.on.resizeBegin', logLabelsEvent ) );
+                    // api.side.on.resizeBegin( $scope, addEventName( 'labels.on.resizeBegin', logLabelsEvent ) );
 
-                    //api.side.on.resize($scope, addEventName('labels.on.resize', logLabelsEvent));
-                    api.side.on.resizeEnd( $scope, addEventName( 'labels.on.resizeEnd', logLabelsEvent ) );
+                    // //api.side.on.resize($scope, addEventName('labels.on.resize', logLabelsEvent));
+                    // api.side.on.resizeEnd( $scope, addEventName( 'labels.on.resizeEnd', logLabelsEvent ) );
 
-                    api.timespans.on.add( $scope, addEventName( 'timespans.on.add', logTimespanEvent ) );
-                    api.columns.on.generate( $scope, logColumnsGenerateEvent );
+                    // api.timespans.on.add( $scope, addEventName( 'timespans.on.add', logTimespanEvent ) );
+                    // api.columns.on.generate( $scope, logColumnsGenerateEvent );
 
-                    api.rows.on.filter( $scope, logRowsFilterEvent );
-                    api.tasks.on.filter( $scope, logTasksFilterEvent );
+                    // api.rows.on.filter( $scope, logRowsFilterEvent );
+                    // api.tasks.on.filter( $scope, logTasksFilterEvent );
 
                     api.data.on.change( $scope, function( newData ) {
 
-                        if ( dataToRemove === undefined ) {
+                        // if ( dataToRemove === undefined ) {
 
-                            dataToRemove = [{
-                                    'id': newData[2].id
-                                }, // Remove Kickoff row
-                                {
-                                    'id': newData[0].id,
-                                    'tasks': [{
-                                        'id': newData[0].tasks[0].id
-                                    }, {
-                                        'id': newData[0].tasks[3].id
-                                    }]
-                                }, // Remove some Milestones
-                                {
-                                    'id': newData[6].id,
-                                    'tasks': [{
-                                        'id': newData[6].tasks[0].id
-                                    }]
-                                } // Remove order basket from Sprint 2
-                            ];
-                        }
+                        //     dataToRemove = [{
+                        //             'id': newData[2].id
+                        //         }, // Remove Kickoff row
+                        //         {
+                        //             'id': newData[0].id,
+                        //             'tasks': [{
+                        //                 'id': newData[0].tasks[0].id
+                        //             }, {
+                        //                 'id': newData[0].tasks[3].id
+                        //             }]
+                        //         }, // Remove some Milestones
+                        //         {
+                        //             'id': newData[6].id,
+                        //             'tasks': [{
+                        //                 'id': newData[6].tasks[0].id
+                        //             }]
+                        //         } // Remove order basket from Sprint 2
+                        //     ];
+                        // }
                     });
 
                     // When gantt is ready, load data.
@@ -223,14 +283,38 @@ angular.module( 'angularGanttDemoApp' )
                     // Add some DOM events
                     api.directives.on.new( $scope, function( directiveName, directiveScope, element, attr ) {
 
-                        if ( directiveName === 'ganttRow1' || directiveName === 'ganttRowLabel' ) {
+                        var foundRow;
 
-                            // console.log( 'directiveName', directiveName, attr );
+                        if ( directiveName === 'ganttTask' ) {
+
+                            // console.log( directiveScope.task.model.name, directiveScope, element );
+
+                            element.on( 'contextMenuClick', function() {
+
+                                foundRow = _.find( $scope.data, function( v ) {
+
+                                    return v.id === directiveScope.task.row.model.id;
+                                });
+
+                                console.log( 'directiveScope.task', directiveScope.task );
+                                console.log( 'row', foundRow );
+
+                                if ( foundRow ) {
+
+                                    foundRow.tasks = _.reject( foundRow.tasks, function( v ) {
+
+                                        return v.id === directiveScope.task.model.id;
+                                    });
+
+                                    api.rows.refresh();
+                                    $scope.$applyAsync();
+                                }
+                            });
                         }
 
                         // console.log( 'directiveName', directiveName, element );
 
-                        if ( directiveName === 'ganttTask' ) {
+                        /*if ( directiveName === 'ganttTask' ) {
 
                             element.bind( 'click', function( event ) {
 
@@ -274,7 +358,7 @@ angular.module( 'angularGanttDemoApp' )
                                 $scope.live.row = directiveScope.row.model;
                                 $scope.$digest();
                             });
-                        }
+                        }*/
                     });
 
                     api.tasks.on.rowChange( $scope, function( task ) {
@@ -361,10 +445,19 @@ angular.module( 'angularGanttDemoApp' )
         // Reload data action
         $scope.load = function() {
 
+            var allTasks = [];
+
             $scope.data = Sample.getSampleData();
             dataToRemove = undefined;
 
-            $scope.timespans = Sample.getSampleTimespans();
+            $scope.data.forEach(function( row ) {
+
+                allTasks = allTasks.concat( row.tasks || []);
+            });
+
+            // console.log('allTasks', allTasks);
+
+            // $scope.timespans = Sample.getSampleTimespans();
         };
 
         $scope.reload = function() {
@@ -387,98 +480,98 @@ angular.module( 'angularGanttDemoApp' )
         // Visual two way binding.
         $scope.live = {};
 
-        var debounceValue = 1000;
+        // var debounceValue = 1000;
 
-        var listenTaskJson = debounce(function( taskJson ) {
+        // var listenTaskJson = debounce(function( taskJson ) {
 
-            if ( taskJson !== undefined ) {
+        //     if ( taskJson !== undefined ) {
 
-                var task = angular.fromJson( taskJson );
-                objectModel.cleanTask( task );
-                var model = $scope.live.task;
-                angular.extend( model, task );
-            }
-        }, debounceValue );
-        $scope.$watch( 'live.taskJson', listenTaskJson );
+        //         var task = angular.fromJson( taskJson );
+        //         objectModel.cleanTask( task );
+        //         var model = $scope.live.task;
+        //         angular.extend( model, task );
+        //     }
+        // }, debounceValue );
+        // $scope.$watch( 'live.taskJson', listenTaskJson );
 
-        var listenRowJson = debounce(function( rowJson ) {
+        // var listenRowJson = debounce(function( rowJson ) {
 
-            if ( rowJson !== undefined ) {
+        //     if ( rowJson !== undefined ) {
 
-                var row = angular.fromJson( rowJson );
-                objectModel.cleanRow( row );
-                var tasks = row.tasks;
+        //         var row = angular.fromJson( rowJson );
+        //         objectModel.cleanRow( row );
+        //         var tasks = row.tasks;
 
-                delete row.tasks;
-                var rowModel = $scope.live.row;
+        //         delete row.tasks;
+        //         var rowModel = $scope.live.row;
 
-                angular.extend( rowModel, row );
+        //         angular.extend( rowModel, row );
 
-                var newTasks = {};
-                var i, l;
+        //         var newTasks = {};
+        //         var i, l;
 
-                if ( tasks !== undefined ) {
+        //         if ( tasks !== undefined ) {
 
-                    for ( i = 0, l = tasks.length; i < l; i++ ) {
+        //             for ( i = 0, l = tasks.length; i < l; i++ ) {
 
-                        objectModel.cleanTask( tasks[i] );
-                    }
+        //                 objectModel.cleanTask( tasks[i] );
+        //             }
 
-                    for ( i = 0, l = tasks.length; i < l; i++ ) {
+        //             for ( i = 0, l = tasks.length; i < l; i++ ) {
 
-                        newTasks[tasks[i].id] = tasks[i];
-                    }
+        //                 newTasks[tasks[i].id] = tasks[i];
+        //             }
 
-                    if ( rowModel.tasks === undefined ) {
+        //             if ( rowModel.tasks === undefined ) {
 
-                        rowModel.tasks = [];
-                    }
-                    for ( i = rowModel.tasks.length - 1; i >= 0; i-- ) {
+        //                 rowModel.tasks = [];
+        //             }
+        //             for ( i = rowModel.tasks.length - 1; i >= 0; i-- ) {
 
-                        var existingTask = rowModel.tasks[i];
-                        var newTask = newTasks[existingTask.id];
-                        if ( newTask === undefined ) {
+        //                 var existingTask = rowModel.tasks[i];
+        //                 var newTask = newTasks[existingTask.id];
+        //                 if ( newTask === undefined ) {
 
-                            rowModel.tasks.splice( i, 1 );
-                        } else {
+        //                     rowModel.tasks.splice( i, 1 );
+        //                 } else {
 
-                            objectModel.cleanTask( newTask );
-                            angular.extend( existingTask, newTask );
-                            delete newTasks[existingTask.id];
-                        }
-                    }
-                } else {
+        //                     objectModel.cleanTask( newTask );
+        //                     angular.extend( existingTask, newTask );
+        //                     delete newTasks[existingTask.id];
+        //                 }
+        //             }
+        //         } else {
 
-                    delete rowModel.tasks;
-                }
+        //             delete rowModel.tasks;
+        //         }
 
-                angular.forEach( newTasks, function( newTask ) {
+        //         angular.forEach( newTasks, function( newTask ) {
 
-                    rowModel.tasks.push( newTask );
-                });
-            }
-        }, debounceValue );
-        $scope.$watch( 'live.rowJson', listenRowJson );
+        //             rowModel.tasks.push( newTask );
+        //         });
+        //     }
+        // }, debounceValue );
+        // $scope.$watch( 'live.rowJson', listenRowJson );
 
-        $scope.$watchCollection( 'live.task', function( task ) {
+        // $scope.$watchCollection( 'live.task', function( task ) {
 
-            $scope.live.taskJson = angular.toJson( task, true );
-            $scope.live.rowJson = angular.toJson( $scope.live.row, true );
-        });
+        //     $scope.live.taskJson = angular.toJson( task, true );
+        //     $scope.live.rowJson = angular.toJson( $scope.live.row, true );
+        // });
 
-        $scope.$watchCollection( 'live.row', function( row ) {
+        // $scope.$watchCollection( 'live.row', function( row ) {
 
-            $scope.live.rowJson = angular.toJson( row, true );
-            if ( row !== undefined && row.tasks !== undefined && row.tasks.indexOf( $scope.live.task ) < 0 ) {
+        //     $scope.live.rowJson = angular.toJson( row, true );
+        //     if ( row !== undefined && row.tasks !== undefined && row.tasks.indexOf( $scope.live.task ) < 0 ) {
 
-                $scope.live.task = row.tasks[0];
-            }
-        });
+        //         $scope.live.task = row.tasks[0];
+        //     }
+        // });
 
-        $scope.$watchCollection( 'live.row.tasks', function() {
+        // $scope.$watchCollection( 'live.row.tasks', function() {
 
-            $scope.live.rowJson = angular.toJson( $scope.live.row, true );
-        });
+        //     $scope.live.rowJson = angular.toJson( $scope.live.row, true );
+        // });
 
         // Event handler
         var logScrollEvent = function( left, date, direction ) {

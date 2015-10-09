@@ -10,6 +10,7 @@
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="bower_components/jQuery-contextMenu/dist/jquery.contextMenu.css" />
     <link rel="stylesheet" href="bower_components/angular-ui-tree/dist/angular-ui-tree.min.css" />
     <link rel="stylesheet" href="bower_components/angular-gantt/assets/angular-gantt.css" />
     <link rel="stylesheet" href="bower_components/angular-gantt/assets/angular-gantt-plugins.css" />
@@ -200,6 +201,18 @@
             </div>
             <div class="row top-buffer">
                 <div class="col-md-12">
+                    <div class="btn-group pull-right">
+                        <button class="btn btn-default" ng-click="" title="Previous">
+                            <span class="glyphicon glyphicon-chevron-left"></span>
+                        </button>
+                        <button class="btn btn-default" ng-click="" title="Next">
+                            <span class="glyphicon glyphicon-chevron-right"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="row top-buffer">
+                <div class="col-md-12">
                     <div class="panel-group" bs-collapse>
                         <div class="panel panel-default">
                             <div class="panel-heading">
@@ -228,7 +241,8 @@
                                          row-content = "options.rowContentEnabled ? options.rowContent : undefined"
                                          current-date="options.currentDate"
                                          current-date-value="options.currentDateValue"
-                                         headers="options.width && options.shortHeaders || options.longHeaders"
+                                         headers="['month', 'day']"
+                                         headers1="options.width && options.shortHeaders || options.longHeaders"
                                          max-height="options.maxHeight && 300 || 0"
                                          time-frames="options.timeFrames"
                                          date-frames="options.dateFrames"
@@ -250,7 +264,7 @@
                                                      header-contents="options.columnsHeaderContents">
                                         </gantt-table>
                                         <gantt-groups enabled="options.groupDisplayMode === 'group' || options.groupDisplayMode === 'overview' || options.groupDisplayMode === 'promote'" display="options.groupDisplayMode"></gantt-groups>
-                                        <gantt-tooltips></gantt-tooltips>
+                                        <gantt-tooltips date-format="'YYYY-MM-DD'"></gantt-tooltips>
                                         <gantt-bounds></gantt-bounds>
                                         <gantt-progress></gantt-progress>
                                         <!-- <gantt-sortable></gantt-sortable> -->
@@ -318,6 +332,7 @@
 
 <!-- build:js(.) scripts/vendor.js -->
 <!-- bower:js -->
+<script src="bower_components/jquery/dist/jquery.js"></script>
 <script src="bower_components/angular/angular.min.js"></script>
 <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
 <script src="bower_components/angular-animate/angular-animate.js"></script>
@@ -332,6 +347,8 @@
 <script src="bower_components/moment-range/dist/moment-range.js"></script>
 <script src="bower_components/css-element-queries/src/ElementQueries.js"></script>
 <script src="bower_components/css-element-queries/src/ResizeSensor.js"></script>
+<script src="bower_components/underscore/underscore.js"></script>
+<script src="bower_components/jQuery-contextMenu/dist/jquery.contextMenu.js"></script>
 <!-- endbower -->
 <!-- endbuild -->
 

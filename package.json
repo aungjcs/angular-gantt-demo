@@ -1,0 +1,22 @@
+{
+  "name": "angular-gantt-demo",
+  "version": "1.0.0",
+  "description": "play with angular-gantt",
+  "main": "watch.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://aungjcs@github.com/aungjcs/angular-gantt-demo.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aungjcs/angular-gantt-demo/issues"
+  },
+  "homepage": "https://github.com/aungjcs/angular-gantt-demo#readme",
+  "devDependencies": {
+    "raw-loader": "^0.5.1"
+  }
+}

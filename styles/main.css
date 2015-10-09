@@ -60,3 +60,26 @@ textarea.live-row {
     font-size: 0.9em;
     color: #333;
 }
+
+.order {
+    color: blue;
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+}
+
+.error .gantt-task-foreground {
+    background-color: #C0C0C0;
+}
+
+.moving {
+    z-index: 10;
+}
+
+/* context menu
+******************************************************************/
+.context-menu-list {
+    z-index: 100;
+}
