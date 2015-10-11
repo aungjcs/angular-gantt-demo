@@ -40,7 +40,7 @@ angular.module( 'angularGanttDemoApp' )
                             { name: 'Day 3', color: '#9FC5F8', from: new Date( 2013, 9, 9 ), to: new Date( 2013, 9, 9 ),
                                 progress: { percent: 100, color: '#3C8CF8' } }
                         ] },*/
-                        { name: 'Dummy', content: '<i class="fa fa-file-code-o" ng-click="scope.handleRowIconClick(row.model)"></i> {{row.model.name}}' },
+                        { name: 'Dummy', classes: ['gantt-dummy-row'], content: '<i class="fa fa-file-code-o" ng-click="scope.handleRowIconClick(row.model)"></i> {{row.model.name}}' },
                         { name: 'Create concept', tasks: [
                             { name: 'Create concept',  content: '<i class="fa fa-cog" ng-click="scope.handleTaskIconClick(task.model)"></i> {{task.model.name}}', color: '#F1C232', from: new Date( 2013, 9, 10 ), to: new Date( 2013, 9, 13 ), est: new Date( 2013, 9, 8 ), lct: new Date( 2013, 9, 18 ),
                                 progress: 100, data: {isMax: true} }

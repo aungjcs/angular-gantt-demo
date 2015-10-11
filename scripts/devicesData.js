@@ -1,0 +1,105 @@
+/*global angular: true*/
+'use strict';
+
+/**
+ * @ngdoc service
+ * @name angularGanttDemoApp.Sample
+ * @description
+ * # Sample
+ * Service in the angularGanttDemoApp.
+ */
+angular.module( 'angularGanttDemoApp' )
+    .service( 'DevicesData', ['ganttUtils', function Sample( util ) {
+
+        var id, classId, counters = 0;
+
+        return {
+            getDevicesData: function() {
+
+                var data = [
+
+                    // Order is optional. If not specified it will be assigned automatically
+                    { name: 'Milestones', height: '3em', sortable: false, classes: 'gantt-row-milestone', color: '#45607D', tasks: [
+
+                        // Dates can be specified as string, timestamp or javascript date object. The data attribute can be used to attach a custom object
+                        { name: 'Kickoff', color: '#93C47D', from: '2013-10-07', to: '2013-10-07T00:00:00', data: 'Can contain any custom data or object' },
+                        { name: 'Concept approval', color: '#93C47D', from: new Date( 2013, 9, 18 ), to: new Date( 2013, 9, 18 ), est: new Date( 2013, 9, 16 ), lct: new Date( 2013, 9, 19 ) },
+                        { name: 'Development finished', color: '#93C47D', from: new Date( 2013, 10, 15 ), to: new Date( 2013, 10, 15 ) },
+                        { name: 'Shop is running', color: '#93C47D', from: new Date( 2013, 10, 22 ), to: new Date( 2013, 10, 22 ) },
+                        { name: 'Go-live', color: '#93C47D', from: new Date( 2013, 10, 29 ), to: new Date( 2013, 10, 29 ) }
+                    ], data: 'Can contain any custom data or object' },
+                    { name: 'Dummy', classes: ['gantt-dummy-row'], content: '<i class="fa fa-file-code-o" ng-click="scope.handleRowIconClick(row.model)"></i> {{row.model.name}}' },
+                    { name: 'Create concept', tasks: [
+                        { name: 'Create concept',  content: '<i class="fa fa-cog" ng-click="scope.handleTaskIconClick(task.model)"></i> {{task.model.name}}', color: '#F1C232', from: new Date( 2013, 9, 10 ), to: new Date( 2013, 9, 13 ), est: new Date( 2013, 9, 8 ), lct: new Date( 2013, 9, 18 ),
+                            progress: 100, data: { isMax: true } }
+                    ] },
+                    { name: 'Finalize concept', tasks: [
+                        { name: 'Finalize concept', color: '#F1C232', from: new Date( 2013, 9, 17 ), to: new Date( 2013, 9, 18 ) }
+                    ] },
+                    { name: 'Development', children: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], content: '<i class="fa fa-file-code-o" ng-click="scope.handleRowIconClick(row.model)"></i> {{row.model.name}}' },
+                    { name: 'Sprint 1', tooltips: false, tasks: [
+                        { name: 'Product list view', color: '#F1C232', from: new Date( 2013, 9, 21 ), to: new Date( 2013, 9, 25 ),
+                            progress: 25 }
+                    ] },
+                    { name: 'Sprint 2', classes: ['sprint2'], tasks: [
+                        { name: 'Order basket', color: '#F1C232', classes:['order'], from: new Date( 2013, 9, 28 ), to: new Date( 2013, 10, 1 ) }
+                    ] },
+                    { name: 'Sprint 3', tasks: [
+                        { name: 'Checkout', color: '#F1C232', from: new Date( 2013, 10, 4 ), to: new Date( 2013, 10, 8 ) }
+                    ] },
+                    { name: 'Sprint 4', tasks: [
+                        { name: 'Login & Signup & Admin Views', color: '#F1C232', from: new Date( 2013, 10, 11 ), to: new Date( 2013, 10, 15 ) }
+                    ] },
+                    { name: 'Hosting' },
+                    { name: 'Setup', tasks: [
+                        { name: 'HW', color: '#F1C232', from: new Date( 2013, 10, 18 ), to: new Date( 2013, 10, 18 ) }
+                    ] },
+                    { name: 'Config', tasks: [
+                        { name: 'SW / DNS/ Backups', color: '#F1C232', from: new Date( 2013, 10, 18 ), to: new Date( 2013, 10, 21 ) }
+                    ] },
+                    { name: 'Server', parent: 'Hosting', children: ['Setup', 'Config'] },
+                    { name: 'Deployment', parent: 'Hosting', tasks: [
+                        { name: 'Depl. & Final testing', color: '#F1C232', from: new Date( 2013, 10, 21 ), to: new Date( 2013, 10, 22 ), 'classes': 'gantt-task-deployment' }
+                    ] },
+                    { name: 'Workshop', tasks: [
+                        { name: 'On-side education', color: '#F1C232', from: new Date( 2013, 10, 24 ), to: new Date( 2013, 10, 25 ) }
+                    ] },
+                    { name: 'Content', tasks: [
+                        { name: 'Supervise content creation', color: '#F1C232', from: new Date( 2013, 10, 26 ), to: new Date( 2013, 10, 29 ) }
+                    ] },
+                    { name: 'Documentation', tasks: [
+                        { name: 'Technical/User documentation', color: '#F1C232', from: new Date( 2013, 10, 26 ), to: new Date( 2013, 10, 28 ) }
+                    ] }
+                ];
+
+                data.length = 0;
+
+                id = util.randomUuid();
+                classId = 'id_' + id;
+
+                data.push({ name: 'devices01', id: id, classes: [classId, 'row-device'], color: '#45607D' });
+
+                id = util.randomUuid();
+                classId = 'id_' + id;
+
+                data.push({ name: 'devices02', id: id, classes: [classId, 'row-device'], color: '#45607D' });
+
+                return data;
+            },
+
+            getNewCounter: function() {
+
+                var id, classId;
+
+                id = util.randomUuid();
+                classId = 'id_' + id;
+
+                counters = counters + 1;
+
+                return {
+                    name: 'Counter_' + ( '00' + counters ).slice( -3 ),
+                    classes: [classId, 'row-counter']
+                };
+            }
+        };
+    }]);

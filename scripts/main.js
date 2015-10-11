@@ -145,6 +145,22 @@ angular.module( 'angularGanttDemoApp' )
                     // api.scroll.on.scroll( $scope, logScrollEvent );
                     // api.core.on.ready( $scope, logReadyEvent );
 
+                    api.core.on.rendered( $scope, function() {
+
+                        $( '.gantt-tree-root' ).sortable({
+                            handle: '.gantt-tree-sort-handle',
+                            start: function( event, ui ) {
+
+                                // $( '.gantt-side-background-body' ).addClass( 'hidden' );
+                            },
+                            stop: function() {
+
+                                // $( '.gantt-side-background-body' ).removeClass( 'hidden' );
+                                console.log( 'sortable stopped', arguments );
+                            }
+                        });
+                    });
+
                     // api.data.on.remove( $scope, addEventName( 'data.on.remove', logDataEvent ) );
                     // api.data.on.load( $scope, addEventName( 'data.on.load', logDataEvent ) );
                     // api.data.on.clear( $scope, addEventName( 'data.on.clear', logDataEvent ) );
@@ -384,7 +400,7 @@ angular.module( 'angularGanttDemoApp' )
                     $scope.load();
 
                     // Add some DOM events
-                    api.directives.on.new( $scope, function( directiveName, directiveScope, element, attr ) {
+                    api.directives.on.new( $scope, function( directiveName, directiveScope, element, attr, ctrl ) {
 
                         var foundRow;
 
@@ -399,8 +415,8 @@ angular.module( 'angularGanttDemoApp' )
                                     return v.id === directiveScope.task.row.model.id;
                                 });
 
-                                console.log( 'directiveScope.task', directiveScope.task );
-                                console.log( 'row', foundRow );
+                                // console.log( 'directiveScope.task', directiveScope.task );
+                                // console.log( 'row', foundRow );
 
                                 if ( foundRow ) {
 
@@ -414,6 +430,23 @@ angular.module( 'angularGanttDemoApp' )
                                     $scope.$applyAsync();
                                 }
                             });
+                        }
+
+                        if ( directiveName === 'ganttRowLabel' ) {
+
+                            // glyphicon glyphicon-sort
+                            // console.log( directiveName, directiveScope, element );
+
+                            if ( element[0].tagName === 'SPAN' ) {
+
+                                // console.log( 'directiveScope', directiveScope );
+                                // console.log( 'element', element );
+
+                                // console.log( 'parent', element.closest( '.gantt-row-label' ).scope() );
+
+                                element.closest( 'div' ).prepend( '<a class="gantt-tree-handle-button gantt-tree-sort-handle btn btn-xs"><i class="glyphicon glyphicon-sort"></a>' );
+                            }
+
                         }
 
                         // console.log( 'directiveName', directiveName, element );
