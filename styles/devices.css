@@ -26,6 +26,12 @@
     display: none !important;
 }
 
+/* タスクの角丸
+*************************************/
+.gantt-task .gantt-task-background {
+    border-radius: 10px;
+}
+
 .gantt-timeframe-holiday {
     border: solid 2px black;
     opacity: 0.6;

@@ -171,6 +171,7 @@ angular.module( 'angularGanttDemoApp' )
 
                     });
 
+                    // 移動
                     if ( api.tasks.on.moveBegin ) {
 
                         api.tasks.on.moveBegin( $scope, function( task ) {
@@ -186,44 +187,42 @@ angular.module( 'angularGanttDemoApp' )
 
                             var duplicate;
 
-                            duplicate = _.find( $scope.allTasks, function( v ) {
-
-                                var tf, tt, vf, vt;
-
-                                tf = task.model.from.format( 'YYYYMMDD' );
-                                tt = task.model.to.format( 'YYYYMMDD' );
-                                vf = v.from.format( 'YYYYMMDD' );
-                                vt = v.to.format( 'YYYYMMDD' );
-
-                                if ( task.model.id === v.id ) {
-
-                                    return false;
-                                }
-
-                                if ( tf >= vf && tf <= vt ) {
-
-                                    return true;
-                                }
-
-                                if ( tt >= vf && tt <= vt ) {
-
-                                    return true;
-                                }
-
-                                if ( tf <= vf && tt >= vt ) {
-
-                                    return true;
-                                }
-
-                                if ( tf >= vf && tt <= vt ) {
-
-                                    return true;
-                                }
-
-                                return false;
-                            });
+                            duplicate = findDuplicate( task );
 
                             console.log( 'duplicate', duplicate );
+                        });
+                    }
+
+                    // 変更
+                    if ( api.tasks.on.resizeBegin ) {
+
+                        api.tasks.on.resizeBegin( $scope, function( task ) {
+
+                            console.log( 'resizeBegin', task );
+
+                            task.original = {
+                                model: angular.extend({}, task.model ),
+                                rowModel: angular.extend({}, task.row.model )
+                            };
+                        });
+
+                        api.tasks.on.resizeEnd( $scope, function( task ) {
+
+                            // 追加タスクの場合は時間が同じにならないようにする
+                            if ( ! task.original ) {
+
+                                task.model.from.hour( 0 );
+                                task.model.to.hour( 23 );
+                            }
+
+                            console.log( 'resizeEnd', getFlatModel( task ) );
+
+                            DevicesData.addNew( task );
+                        });
+
+                        api.tasks.on.resize( $scope, function( task ) {
+
+                            // console.log('resize', task);
                         });
                     }
 
@@ -328,9 +327,11 @@ angular.module( 'angularGanttDemoApp' )
                                     row.tasks = row.tasks || [];
                                     row.children = row.children || [];
 
-                                    row.children.push( counter.name );
+                                    // 親子関係を築く
+                                    counter.parent = row.name;
+                                    // row.children.push( counter.name );
 
-                                    $scope.data.push( counter )
+                                    $scope.data.push( counter );
 
                                     $scope.mapTasks();
                                     api.rows.refresh();
@@ -435,6 +436,24 @@ angular.module( 'angularGanttDemoApp' )
             });
 
             return row;
+        }
+
+        function getFlatModel ( task ) {
+
+            var model;
+
+            if ( task.model ) {
+
+                model = angular.extend({}, task.model );
+            } else if ( task.from && task.to ) {
+
+                model = angular.extend({}, task );
+            }
+
+            model.from = model.from.format( 'YYYY-MM-DD' );
+            model.to = model.to.format( 'YYYY-MM-DD' );
+
+            return model;
         }
 
         $scope.$watch( 'options.sideMode', function( newValue, oldValue ) {
