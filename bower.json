@@ -22,7 +22,8 @@
     "moment-range": "~2.0.3",
     "css-element-queries": "~0.3.0",
     "underscore": "~1.8.3",
-    "jQuery-contextMenu": "~1.9.0"
+    "jQuery-contextMenu": "~1.9.0",
+    "jquery-ui": "~1.11.4"
   },
   "overrides": {
     "bootstrap": {

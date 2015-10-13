@@ -1,112 +1,150 @@
-.container-content {
+.container-content
+{
     margin: 10px;
 }
 
-.top-buffer {
+.top-buffer
+{
     margin-top: 8px;
 }
 
-.navbar-right-spacing {
+.navbar-right-spacing
+{
     margin-right: 160px;
 }
 
-.btn:focus {
+.btn:focus
+{
     color: #333;
-    background-color: #fff;
     border-color: #ccc;
+    background-color: #fff;
 }
 
-.btn.active:focus {
+.btn.active:focus
+{
     color: #333;
-    background-color: #ebebeb;
     border-color: #adadad;
+    background-color: #ebebeb;
 }
 
-[ng\:cloak], [ng-cloak], .ng-cloak {
+[ng\:cloak],
+[ng-cloak],
+.ng-cloak
+{
     display: none !important;
 }
 
 /* タスクの角丸
 *************************************/
-.gantt-task .gantt-task-background {
+.gantt-task .gantt-task-background
+{
+    /*border: 2px solid #E6A500;*/
+    /*background-color: #F1C232;*/
+    border: 2px solid #FFC53E;
     border-radius: 10px;
+    background-color: #FFDB86;
 }
 
-.gantt-timeframe-holiday {
-    border: solid 2px black;
-    opacity: 0.6;
+.gantt-task-content *
+{
+    display: none;
 }
 
-ol.gantt-tree-root li {
+.gantt-timeframe-holiday
+{
+    /*border: solid 2px black;*/
+    opacity: .6;
+}
+
+ol.gantt-tree-root li
+{
     /*text-indent: 10px;*/
 }
 
-.gantt-row-label span.gantt-label-text {
+.gantt-row-label span.gantt-label-text
+{
     /*padding-right: 5px;*/
 }
 
 .row-device,
-.gantt-row-milestone {
+.gantt-row-milestone
+{
     font-weight: bold;
+
     vertical-align: middle;
-    color: white;
+
+    color: #eee;
 }
 
-.row-device a {
-    color: white;
+.row-device a
+{
+    color: #eee;
 }
 
-.row-device a.gantt-tree-expanded {
+.row-device a.gantt-tree-expanded
+{
     /*display: none;*/
 }
 
-.row-counter .gantt-tree-handle-button {
-    display: none;
+.row-counter .gantt-tree-handle-button,
+.row-counter .gantt-tree-handle-button[disabled]
+{
+    display: none !important;
 }
 
-div.live-table {
+div.live-table
+{
     display: table;
+
     width: 100%;
 }
 
-div.live-row {
+div.live-row
+{
     display: table-row;
 }
 
-div.live-cell {
+div.live-cell
+{
     display: table-cell;
-    padding: 5px;
+
     width: 50%;
+    padding: 5px;
 }
 
 textarea.live-task,
-textarea.live-row {
+textarea.live-row
+{
+    font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: .9em;
+
     width: 100%;
     height: 300px;
-    font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-    font-size: 0.9em;
+
     color: #333;
 }
 
-.order {
-    color: blue;
+.order
+{
     font-weight: bold;
+
+    color: blue;
 }
 
-.error {
-    color: red;
+.error .gantt-task-background
+{
+    border-color: #FF6A6A;
+    background-color: #FFA6A6;
 }
 
-.error .gantt-task-foreground {
-    background-color: #C0C0C0;
-}
-
-.moving {
+.moving
+{
     z-index: 10;
 }
 
 /* context menu
 ******************************************************************/
-.context-menu-list {
+.context-menu-list
+{
     z-index: 100;
 }

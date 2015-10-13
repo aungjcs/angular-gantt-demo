@@ -141,6 +141,11 @@ angular.module( 'angularGanttDemoApp' )
 
                 api.core.on.ready( $scope, function() {
 
+                    api.rows.addRowSorter(function ( rows ) {
+                        
+                        console.log('addRowSorter', rows);
+                    });
+
                     // Log various events to console
                     // api.scroll.on.scroll( $scope, logScrollEvent );
                     // api.core.on.ready( $scope, logReadyEvent );

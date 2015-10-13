@@ -9,21 +9,19 @@
  * Controller of the angularGanttDemoApp
  */
 angular.module( 'angularGanttDemoApp' )
-    .controller( 'MainCtrl', ['$scope', '$timeout', 'ganttUtils', 'GanttObjectModel', 'DevicesData', 'moment', function( $scope, $timeout, utils, ObjectModel, DevicesData, moment ) {
+    .controller( 'MainCtrl', ['$scope', '$timeout', 'ganttUtils', 'DevicesData', 'moment', function( $scope, $timeout, utils, DevicesData, moment ) {
 
-        var objectModel;
-        var dataToRemove;
-
+        var nationalHolidays = DevicesData.getNationalHoliday();
         var $ = angular.element;
+        var lastData = null;
 
         $scope.options = {
             mode: 'custom',
             scale: 'day',
 
             // viewScale: 'day',
-            sortMode: undefined,
+            sortMode: 'from',
             sideMode: 'Tree',
-            daily: true,
             maxHeight: true,
             width: true,
             zoom: 1,
@@ -95,17 +93,34 @@ angular.module( 'angularGanttDemoApp' )
                         return date.isoWeekday() === 6 || date.isoWeekday() === 7;
                     },
                     targets: ['weekend']
+                },
+                'holiday': {
+                    evaluator: function( date ) {
+
+                        return !! nationalHolidays.dateMap[date.format( 'YYYYMMDD' )];
+
+                        // return true;
+                    },
+                    targets: ['holiday']
                 }
             },
             timeFramesWorkingMode: 'hidden',
             timeFramesNonWorkingMode: 'visible', // visible hidden
 
-            // columnMagnet: '1 day',
-            // columnMagnet: '1 hour',
-            columnMagnet: '1 minute',
+            /* 日単位でスムーズに移動変更させる為のおすすめ設定
+                daily: false,
+                columnMagnet: '1 day',
+                timeFramesMagnet: false,
+            */
 
+            daily: false,
+            columnMagnet: '1 day',
+
+            // columnMagnet: '1 hour',
+            // columnMagnet: '1 minute',
             // columnMagnet: '1 second',
-            // columnMagnet: '23 hours',
+
+            // columnMagnet: '23.5 hours',
             timeFramesMagnet: false,
             canDraw: function( event ) {
 
@@ -116,9 +131,10 @@ angular.module( 'angularGanttDemoApp' )
             drawTaskFactory: function() {
 
                 return {
-                    id: utils.randomUuid(), // Unique id of the task.
-                    name: 'Drawn task', // Name shown on top of each task.
-                    color: '#F1C232' // Color of the task in HEX format (Optional).
+                    id: utils.randomUuid(),
+                    name: 'Task',
+
+                    // color: '#F1C232'
                 };
             },
             api: function( api ) {
@@ -129,18 +145,18 @@ angular.module( 'angularGanttDemoApp' )
 
                     api.core.on.rendered( $scope, function() {
 
-                        $( '.gantt-tree-root' ).sortable({
-                            handle: '.gantt-tree-sort-handle',
-                            start: function( event, ui ) {
+                        // $( '.gantt-tree-root' ).sortable({
+                        //     handle: '.gantt-tree-sort-handle',
+                        //     start: function( event, ui ) {
 
-                                // $( '.gantt-side-background-body' ).addClass( 'hidden' );
-                            },
-                            stop: function() {
+                        //         // $( '.gantt-side-background-body' ).addClass( 'hidden' );
+                        //     },
+                        //     stop: function() {
 
-                                // $( '.gantt-side-background-body' ).removeClass( 'hidden' );
-                                console.log( 'sortable stopped', arguments );
-                            }
-                        });
+                        //         // $( '.gantt-side-background-body' ).removeClass( 'hidden' );
+                        //         console.log( 'sortable stopped', arguments );
+                        //     }
+                        // });
 
                         $( '.gantt-tree-root li' ).each(function() {
 
@@ -189,7 +205,14 @@ angular.module( 'angularGanttDemoApp' )
 
                             duplicate = findDuplicate( task );
 
-                            console.log( 'duplicate', duplicate );
+                            if ( duplicate ) {
+
+                                revert( task );
+
+                            } else {
+
+                                save( task );
+                            }
                         });
                     }
 
@@ -208,16 +231,19 @@ angular.module( 'angularGanttDemoApp' )
 
                         api.tasks.on.resizeEnd( $scope, function( task ) {
 
-                            // 追加タスクの場合は時間が同じにならないようにする
-                            if ( ! task.original ) {
+                            // 新規の場合はoriginalがない
+                            var duplicate;
 
-                                task.model.from.hour( 0 );
-                                task.model.to.hour( 23 );
+                            duplicate = findDuplicate( task );
+
+                            if ( duplicate ) {
+
+                                revert( task );
+
+                            } else {
+
+                                save( task );
                             }
-
-                            console.log( 'resizeEnd', getFlatModel( task ) );
-
-                            DevicesData.addNew( task );
                         });
 
                         api.tasks.on.resize( $scope, function( task ) {
@@ -226,49 +252,12 @@ angular.module( 'angularGanttDemoApp' )
                         });
                     }
 
-                    function findDuplicate( task ) {
-
-                        return _.find( $scope.allTasks, function( v ) {
-
-                            var tf, tt, vf, vt;
-
-                            tf = task.model.from.format( 'YYYYMMDD' );
-                            tt = task.model.to.format( 'YYYYMMDD' );
-                            vf = v.from.format( 'YYYYMMDD' );
-                            vt = v.to.format( 'YYYYMMDD' );
-
-                            if ( task.model.id === v.id ) {
-
-                                return false;
-                            }
-
-                            if ( tf >= vf && tf <= vt ) {
-
-                                return true;
-                            }
-
-                            if ( tt >= vf && tt <= vt ) {
-
-                                return true;
-                            }
-
-                            if ( tf <= vf && tt >= vt ) {
-
-                                return true;
-                            }
-
-                            if ( tf >= vf && tt <= vt ) {
-
-                                return true;
-                            }
-
-                            return false;
-                        });
-                    }
-
                     api.tasks.on.move( $scope, function( task ) {
 
                         task.$element.removeClass( 'error' );
+
+                        // 期間を最適化
+                        optimizePeriod( task );
 
                         if ( task.row.tasks.length > 1 ) {
 
@@ -279,22 +268,19 @@ angular.module( 'angularGanttDemoApp' )
 
                             task.$element.addClass( 'error' );
                         }
-
-                        // console.log( 'tasks.on.change' );
                     });
 
                     api.tasks.on.resize( $scope, function( task ) {
 
                         task.$element.removeClass( 'error' );
 
+                        // 期間を最適化
+                        optimizePeriod( task );
+
                         if ( findDuplicate( task ) ) {
 
                             task.$element.addClass( 'error' );
                         }
-                    });
-
-                    api.data.on.change( $scope, function( newData ) {
-
                     });
 
                     $scope.load();
@@ -321,7 +307,7 @@ angular.module( 'angularGanttDemoApp' )
 
                                     evt.preventDefault();
 
-                                    row = getRomFromDom( item );
+                                    row = getRowFromDom( item );
                                     counter = DevicesData.getNewCounter();
 
                                     row.tasks = row.tasks || [];
@@ -329,12 +315,13 @@ angular.module( 'angularGanttDemoApp' )
 
                                     // 親子関係を築く
                                     counter.parent = row.name;
+
                                     // row.children.push( counter.name );
 
                                     $scope.data.push( counter );
 
                                     $scope.mapTasks();
-                                    api.rows.refresh();
+                                    $scope.api.rows.refresh();
                                     $scope.$applyAsync();
 
                                     console.log( 'row', $scope.data );
@@ -355,19 +342,34 @@ angular.module( 'angularGanttDemoApp' )
 
                             // console.log( directiveScope.task.model.name, directiveScope, element );
 
-                            element.on( 'contextMenuClick', function() {
+                            element.on( 'contextMenuClick', function( event, key ) {
 
-                                foundRow = _.find( $scope.data, function( v ) {
+                                if ( key === 'delete' ) {
 
-                                    return v.id === directiveScope.task.row.model.id;
-                                });
+                                    element.off( 'contextMenuClick' );
 
-                                // console.log( 'directiveScope.task', directiveScope.task );
-                                // console.log( 'row', foundRow );
+                                    foundRow = _.find( $scope.data, function( v ) {
 
-                                if ( foundRow ) {
+                                        return v.id === directiveScope.task.row.model.id;
+                                    });
 
-                                    foundRow.tasks = _.reject( foundRow.tasks, function( v ) {
+                                    // console.log( 'directiveScope.task', directiveScope.task );
+                                    // console.log( 'row', foundRow );
+
+                                    //ストレージから削除
+                                    DevicesData.remove( directiveScope.task );
+
+                                    console.log( 'deleted row', foundRow.tasks );
+
+                                    if ( foundRow ) {
+
+                                        foundRow.tasks = _.reject( foundRow.tasks, function( v ) {
+
+                                            return v.id === directiveScope.task.model.id;
+                                        });
+                                    }
+
+                                    directiveScope.task.row.tasks = _.reject( directiveScope.task.row.tasks, function( v ) {
 
                                         return v.id === directiveScope.task.model.id;
                                     });
@@ -375,6 +377,8 @@ angular.module( 'angularGanttDemoApp' )
                                     $scope.mapTasks();
                                     api.rows.refresh();
                                     $scope.$applyAsync();
+
+                                    console.log( 'deleted row', foundRow.tasks );
                                 }
                             });
                         }
@@ -404,19 +408,18 @@ angular.module( 'angularGanttDemoApp' )
 
                     api.tasks.on.change( $scope, function( task ) {
 
-                        // console.log( 'tasksOnChange', angular.extend({}, task.model) );
+                        // console.log( 'tasksOnChange', angular.extend({}, task.model ) );
                     });
 
                     api.rows.on.add( $scope, function( row ) {
 
                     });
 
-                    objectModel = new ObjectModel( api );
                 });
             }
         };
 
-        function getRomFromDom( item ) {
+        function getRowFromDom( item ) {
 
             var classes, row, id;
 
@@ -438,7 +441,90 @@ angular.module( 'angularGanttDemoApp' )
             return row;
         }
 
-        function getFlatModel ( task ) {
+        function save( task ) {
+
+            DevicesData.save( task );
+            $scope.checkpoint();
+
+            $scope.mapTasks();
+        }
+
+        function remove( task ) {
+
+            DevicesData.save( task );
+            $scope.checkpoint();
+
+            $scope.mapTasks();
+        }
+
+        function revert( task ) {
+
+            $scope.data = angular.copy( lastData );
+            $scope.mapTasks();
+
+            task.$element.removeClass( 'error' );
+
+            $scope.api.rows.refresh();
+            $scope.$applyAsync();
+        }
+
+        function optimizePeriod( task ) {
+
+            if ( task.model ) {
+
+                // task.model.from.hour( 0 );
+                // task.model.to.hour( 23 );
+
+                if ( task.model.from.format( 'YYYYMMDD' ) !== task.model.to.format( 'YYYYMMDD' ) ) {
+
+                    // task.model.to.add( -1, 'm' );
+                }
+            }
+
+            return task;
+        }
+
+        function findDuplicate( task ) {
+
+            return _.find( $scope.allTasks, function( v ) {
+
+                var tf, tt, vf, vt;
+
+                tf = task.model.from.format( 'YYYYMMDD' );
+                tt = moment( task.model.to.toDate() ).add( -1, 'm' ).format( 'YYYYMMDD' );
+                vf = v.from.format( 'YYYYMMDD' );
+                vt = moment( v.to.toDate() ).add( -1, 'm' ).format( 'YYYYMMDD' );
+
+                if ( task.model.id === v.id ) {
+
+                    return false;
+                }
+
+                if ( tf >= vf && tf <= vt ) {
+
+                    return true;
+                }
+
+                if ( tt >= vf && tt <= vt ) {
+
+                    return true;
+                }
+
+                if ( tf <= vf && tt >= vt ) {
+
+                    return true;
+                }
+
+                if ( tf >= vf && tt <= vt ) {
+
+                    return true;
+                }
+
+                return false;
+            });
+        }
+
+        function getFlatModel( task ) {
 
             var model;
 
@@ -467,6 +553,21 @@ angular.module( 'angularGanttDemoApp' )
                 });
             }
         });
+
+        $scope.resort = function() {
+
+            console.log( '$scope.data', $scope.data );
+
+            $scope.api.rows.sort();
+        };
+
+        $scope.reset = function() {
+
+            DevicesData.removeAll();
+
+            $scope.clear();
+            $scope.reload();
+        };
 
         $scope.canAutoWidth = function( scale ) {
 
@@ -511,9 +612,17 @@ angular.module( 'angularGanttDemoApp' )
         $scope.load = function() {
 
             $scope.data = DevicesData.getDevicesData();
-            dataToRemove = undefined;
+
+            $scope.checkpoint();
 
             $scope.mapTasks();
+
+            console.log('load');
+        };
+
+        $scope.checkpoint = function() {
+
+            lastData = angular.copy( $scope.data );
         };
 
         $scope.mapTasks = function() {
@@ -536,7 +645,7 @@ angular.module( 'angularGanttDemoApp' )
         // Remove data action
         $scope.remove = function() {
 
-            $scope.api.data.remove( dataToRemove );
+            // $scope.api.data.remove( dataToRemove );
         };
 
         // Clear data action

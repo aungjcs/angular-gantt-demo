@@ -40,13 +40,14 @@ angular.element(function() {
 
         // define the elements of the menu
         items: {
-            foo: {
+            delete: {
                 name: 'Delete',
+                icon: 'delete',
                 callback: function( key, opt ) {
 
                     // alert( 'Foo!' );
 
-                    $( this ).trigger( 'contextMenuClick' );
+                    $( this ).trigger( 'contextMenuClick', key );
                 }
             }
         }
