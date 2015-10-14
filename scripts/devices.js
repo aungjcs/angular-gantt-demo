@@ -220,10 +220,12 @@ angular.module( 'angularGanttDemoApp' )
                             if ( duplicate ) {
 
                                 revert( task );
+                                api.tree.refresh();
 
                             } else {
 
                                 save( task );
+                                api.tree.refresh();
                             }
                         });
                     }
@@ -485,8 +487,8 @@ angular.module( 'angularGanttDemoApp' )
             //ストレージから削除
             DevicesData.remove( task );
 
-            $scope.checkpoint();
             $scope.mapTasks();
+            $scope.checkpoint();
             $scope.api.rows.refresh();
             $scope.$applyAsync();
         }
@@ -496,7 +498,8 @@ angular.module( 'angularGanttDemoApp' )
             task.$element.removeClass( 'error' );
 
             $scope.data.length = 0;
-            $scope.data = angular.copy( lastData );
+            // $scope.data = angular.copy( lastData );
+            $scope.data = DevicesData.getDevicesData();
 
             $scope.mapTasks();
             $scope.api.rows.refresh();
@@ -507,8 +510,9 @@ angular.module( 'angularGanttDemoApp' )
 
             DevicesData.save( task );
 
-            $scope.checkpoint();
             $scope.mapTasks();
+            $scope.checkpoint();
+            $scope.api.rows.refresh();
             $scope.$applyAsync();
         }
 
@@ -521,10 +525,20 @@ angular.module( 'angularGanttDemoApp' )
 
         $scope.reset = function() {
 
-            DevicesData.removeAll();
+            // DevicesData.removeAll();
 
-            $scope.clear();
-            $scope.reload();
+            // $scope.clear();
+            // $scope.reload();
+
+            $scope.data.forEach(function( v ) {
+                if ( v.type === 'device' ) {
+
+                    v.tasks.length = 0;
+                }
+            });
+
+            $scope.api.rows.refresh();
+            $scope.$applyAsync();
         };
 
         // Reload data action
@@ -543,19 +557,42 @@ angular.module( 'angularGanttDemoApp' )
 
         $scope.mapTasks = function() {
 
-            var allTasks, devices, device;
+            var allTasks, devices, device, counterTasks, deviceTask;
 
             allTasks = [];
 
-            devices = _.groupBy( $scope.data, 'name' );
+            // devices = _.groupBy( $scope.data, 'name' );
+            devices = {};
+
+            $scope.data.forEach(function( v ) {
+
+                if ( v.type === 'device' ) {
+
+                    v.tasks = [];
+                    devices[v.name] = v;
+                }
+            });
+
+            console.log( 'devices', devices );
 
             $scope.data.forEach(function( row ) {
 
                 if ( row.type === 'counter' ) {
 
-                    device = devices[row.parent][0];
+                    device = devices[row.parent];
                     device.tasks = device.tasks || [];
-                    device.tasks = device.tasks.concat( angular.copy( row.tasks || []) );
+
+                    counterTasks = row.tasks || [];
+
+                    counterTasks.forEach(function( t ) {
+
+                        deviceTask = angular.copy( t );
+                        deviceTask.id = utils.randomUuid();
+                        deviceTask.movable = false;
+                        device.tasks.push( deviceTask );
+                    });
+
+                    // device.tasks = device.tasks.concat( angular.copy( row.tasks || []) );
 
                     allTasks = allTasks.concat( row.tasks || []);
                 }
