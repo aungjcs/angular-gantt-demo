@@ -119,8 +119,8 @@ angular.module( 'angularGanttDemoApp' )
             // columnMagnet: '1 hour',
             // columnMagnet: '1 minute',
             // columnMagnet: '1 second',
-
             // columnMagnet: '23.5 hours',
+
             timeFramesMagnet: false,
             canDraw: function( event ) {
 
@@ -162,8 +162,6 @@ angular.module( 'angularGanttDemoApp' )
 
                             var id, classes, row;
 
-                            // var id = $(this).children('div').attr('class').split(' ')[2]
-
                             classes = $( this ).children( 'div' ).attr( 'class' ).split( ' ' );
 
                             classes.forEach(function( v ) {
@@ -179,23 +177,13 @@ angular.module( 'angularGanttDemoApp' )
                                 return v.id === id;
                             });
 
-                            // $( this ).trigger( 'setRowData', row );
                         });
-                    });
-
-                    api.tasks.on.change( $scope, function( task ) {
-
                     });
 
                     // 移動
                     if ( api.tasks.on.moveBegin ) {
 
                         api.tasks.on.moveBegin( $scope, function( task ) {
-
-                            task.original = {
-                                model: angular.extend({}, task.model ),
-                                rowModel: angular.extend({}, task.row.model )
-                            };
 
                         });
 
@@ -205,7 +193,7 @@ angular.module( 'angularGanttDemoApp' )
 
                             duplicate = findDuplicate( task );
 
-                            if ( duplicate ) {
+                            if ( ! task.$element.closest( '.row-counter' ).length || duplicate ) {
 
                                 revert( task );
 
@@ -221,17 +209,10 @@ angular.module( 'angularGanttDemoApp' )
 
                         api.tasks.on.resizeBegin( $scope, function( task ) {
 
-                            console.log( 'resizeBegin', task );
-
-                            task.original = {
-                                model: angular.extend({}, task.model ),
-                                rowModel: angular.extend({}, task.row.model )
-                            };
                         });
 
                         api.tasks.on.resizeEnd( $scope, function( task ) {
 
-                            // 新規の場合はoriginalがない
                             var duplicate;
 
                             duplicate = findDuplicate( task );
@@ -245,11 +226,6 @@ angular.module( 'angularGanttDemoApp' )
                                 save( task );
                             }
                         });
-
-                        api.tasks.on.resize( $scope, function( task ) {
-
-                            // console.log('resize', task);
-                        });
                     }
 
                     api.tasks.on.move( $scope, function( task ) {
@@ -259,12 +235,7 @@ angular.module( 'angularGanttDemoApp' )
                         // 期間を最適化
                         optimizePeriod( task );
 
-                        if ( task.row.tasks.length > 1 ) {
-
-                            // task.$element.addClass( 'error' );
-                        }
-
-                        if ( findDuplicate( task ) ) {
+                        if ( ! task.$element.closest( '.row-counter' ).length || findDuplicate( task ) ) {
 
                             task.$element.addClass( 'error' );
                         }
@@ -285,20 +256,20 @@ angular.module( 'angularGanttDemoApp' )
 
                     $scope.load();
 
-                    api.directives.on.new( $scope, function( directiveName, directiveScope, element　) {
+                    api.directives.on.new( $scope, function( dName, dScope, ele ) {
 
                         var item, addHandler;
 
                         // ラベルの場合
-                        if ( directiveName === 'ganttRowLabel' ) {
+                        if ( dName === 'ganttRowLabel' ) {
 
-                            if ( element[0].tagName === 'SPAN' ) {
+                            if ( ele[0].tagName === 'SPAN' ) {
 
-                                item = element.closest( 'li' );
+                                item = ele.closest( 'li' );
                                 addHandler = $( '<a class="gantt-tree-handle-button gantt-tree-add btn btn-xs">' );
                                 addHandler.append( '<i class="glyphicon glyphicon-plus-sign">' );
 
-                                element.closest( 'div' ).prepend( addHandler );
+                                ele.closest( 'div' ).prepend( addHandler );
 
                                 // 店舗追加
                                 addHandler.click(function( evt ) {
@@ -316,108 +287,46 @@ angular.module( 'angularGanttDemoApp' )
                                     // 親子関係を築く
                                     counter.parent = row.name;
 
-                                    // row.children.push( counter.name );
-
                                     $scope.data.push( counter );
+                                    $scope.checkpoint();
 
                                     $scope.mapTasks();
                                     $scope.api.rows.refresh();
                                     $scope.$applyAsync();
-
-                                    console.log( 'row', $scope.data );
                                 });
-
-                                /*item.on( 'setRowData', function( event, row ) {
-
-                                });*/
                             }
                         }
-                    });
 
-                    api.directives.on.new( $scope, function( directiveName, directiveScope, element, attr, ctrl ) {
+                        if ( dName === 'ganttTask' ) {
 
-                        var foundRow, item;
+                            ele.on( 'contextMenuClick', function( evt, key ) {
 
-                        if ( directiveName === 'ganttTask' ) {
-
-                            // console.log( directiveScope.task.model.name, directiveScope, element );
-
-                            element.on( 'contextMenuClick', function( event, key ) {
+                                evt.preventDefault();
 
                                 if ( key === 'delete' ) {
 
-                                    element.off( 'contextMenuClick' );
+                                    ele.off( 'contextMenuClick' );
 
-                                    foundRow = _.find( $scope.data, function( v ) {
-
-                                        return v.id === directiveScope.task.row.model.id;
-                                    });
-
-                                    // console.log( 'directiveScope.task', directiveScope.task );
-                                    // console.log( 'row', foundRow );
-
-                                    //ストレージから削除
-                                    DevicesData.remove( directiveScope.task );
-
-                                    console.log( 'deleted row', foundRow.tasks );
-
-                                    if ( foundRow ) {
-
-                                        foundRow.tasks = _.reject( foundRow.tasks, function( v ) {
-
-                                            return v.id === directiveScope.task.model.id;
-                                        });
-                                    }
-
-                                    directiveScope.task.row.tasks = _.reject( directiveScope.task.row.tasks, function( v ) {
-
-                                        return v.id === directiveScope.task.model.id;
-                                    });
-
-                                    $scope.mapTasks();
-                                    api.rows.refresh();
-                                    $scope.$applyAsync();
-
-                                    console.log( 'deleted row', foundRow.tasks );
+                                    remove( dScope.task );
                                 }
                             });
                         }
-
-                        // ラベルの場合
-                        if ( directiveName === 'ganttRowLabel' ) {
-
-                            if ( element[0].tagName === 'SPAN' ) {
-
-                                // item = element.closest( 'li' );
-
-                                // element.closest( 'div' ).prepend( '<a class="gantt-tree-handle-button gantt-tree-sort-handle btn btn-xs"><i class="glyphicon glyphicon-sort"></a>' );
-                            }
-
-                        }
-
                     });
-
-                    api.tasks.on.rowChange( $scope, function( task ) {
-
-                    });
-
-                    api.tasks.on.add( $scope, function( task ) {
-
-                        // console.log( 'tasksOnAdd', angular.extend({}, task.model) );
-                    });
-
-                    api.tasks.on.change( $scope, function( task ) {
-
-                        // console.log( 'tasksOnChange', angular.extend({}, task.model ) );
-                    });
-
-                    api.rows.on.add( $scope, function( row ) {
-
-                    });
-
                 });
             }
         };
+
+        $scope.$watch( 'options.sideMode', function( newValue, oldValue ) {
+
+            if ( newValue !== oldValue ) {
+
+                $scope.api.side.setWidth( undefined );
+                $timeout(function() {
+
+                    $scope.api.columns.refresh();
+                });
+            }
+        });
 
         function getRowFromDom( item ) {
 
@@ -441,39 +350,9 @@ angular.module( 'angularGanttDemoApp' )
             return row;
         }
 
-        function save( task ) {
-
-            DevicesData.save( task );
-            $scope.checkpoint();
-
-            $scope.mapTasks();
-        }
-
-        function remove( task ) {
-
-            DevicesData.save( task );
-            $scope.checkpoint();
-
-            $scope.mapTasks();
-        }
-
-        function revert( task ) {
-
-            $scope.data = angular.copy( lastData );
-            $scope.mapTasks();
-
-            task.$element.removeClass( 'error' );
-
-            $scope.api.rows.refresh();
-            $scope.$applyAsync();
-        }
-
         function optimizePeriod( task ) {
 
             if ( task.model ) {
-
-                // task.model.from.hour( 0 );
-                // task.model.to.hour( 23 );
 
                 if ( task.model.from.format( 'YYYYMMDD' ) !== task.model.to.format( 'YYYYMMDD' ) ) {
 
@@ -542,33 +421,6 @@ angular.module( 'angularGanttDemoApp' )
             return model;
         }
 
-        $scope.$watch( 'options.sideMode', function( newValue, oldValue ) {
-
-            if ( newValue !== oldValue ) {
-
-                $scope.api.side.setWidth( undefined );
-                $timeout(function() {
-
-                    $scope.api.columns.refresh();
-                });
-            }
-        });
-
-        $scope.resort = function() {
-
-            console.log( '$scope.data', $scope.data );
-
-            $scope.api.rows.sort();
-        };
-
-        $scope.reset = function() {
-
-            DevicesData.removeAll();
-
-            $scope.clear();
-            $scope.reload();
-        };
-
         $scope.canAutoWidth = function( scale ) {
 
             if ( scale.match( /.*?hour.*?/ ) || scale.match( /.*?minute.*?/ ) ) {
@@ -608,16 +460,80 @@ angular.module( 'angularGanttDemoApp' )
             return 40 * zoom;
         };
 
+        function remove( task ) {
+
+            var foundRow;
+
+            // $scope.dataから削除（これはやっといた方がいいらしい）
+            // https://github.com/angular-gantt/angular-gantt/issues/359
+            foundRow = _.find( $scope.data, function( v ) {
+
+                return v.id === task.row.model.id;
+            });
+
+            if ( foundRow ) {
+
+                foundRow.tasks = _.reject( foundRow.tasks, function( v ) {
+
+                    return v.id === task.model.id;
+                });
+            }
+
+            // 行から削除
+            task.row.removeTask( task.model.id );
+
+            //ストレージから削除
+            DevicesData.remove( task );
+
+            $scope.checkpoint();
+            $scope.mapTasks();
+            $scope.api.rows.refresh();
+            $scope.$applyAsync();
+        }
+
+        function revert( task ) {
+
+            task.$element.removeClass( 'error' );
+
+            $scope.data.length = 0;
+            $scope.data = angular.copy( lastData );
+
+            $scope.mapTasks();
+            $scope.api.rows.refresh();
+            $scope.$applyAsync();
+        }
+
+        function save( task ) {
+
+            DevicesData.save( task );
+
+            $scope.checkpoint();
+            $scope.mapTasks();
+            $scope.$applyAsync();
+        }
+
+        $scope.resort = function() {
+
+            console.log( '$scope.data', $scope.data );
+
+            $scope.api.rows.sort();
+        };
+
+        $scope.reset = function() {
+
+            DevicesData.removeAll();
+
+            $scope.clear();
+            $scope.reload();
+        };
+
         // Reload data action
         $scope.load = function() {
 
             $scope.data = DevicesData.getDevicesData();
 
             $scope.checkpoint();
-
             $scope.mapTasks();
-
-            console.log('load');
         };
 
         $scope.checkpoint = function() {
@@ -627,25 +543,32 @@ angular.module( 'angularGanttDemoApp' )
 
         $scope.mapTasks = function() {
 
-            var allTasks = [];
+            var allTasks, devices, device;
+
+            allTasks = [];
+
+            devices = _.groupBy( $scope.data, 'name' );
 
             $scope.data.forEach(function( row ) {
 
-                allTasks = allTasks.concat( row.tasks || []);
+                if ( row.type === 'counter' ) {
+
+                    device = devices[row.parent][0];
+                    device.tasks = device.tasks || [];
+                    device.tasks = device.tasks.concat( angular.copy( row.tasks || []) );
+
+                    allTasks = allTasks.concat( row.tasks || []);
+                }
             });
 
             $scope.allTasks = allTasks;
+
+            console.log( 'allTasks', allTasks );
         };
 
         $scope.reload = function() {
 
             $scope.load();
-        };
-
-        // Remove data action
-        $scope.remove = function() {
-
-            // $scope.api.data.remove( dataToRemove );
         };
 
         // Clear data action

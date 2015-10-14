@@ -54,6 +54,7 @@ angular.module( 'angularGanttDemoApp' )
                         classId = 'id_' + id;
 
                         data.push({
+                            type: 'device',
                             name: v,
                             id: id,
                             classes: [classId, 'row-device'],
@@ -68,6 +69,7 @@ angular.module( 'angularGanttDemoApp' )
                         id = util.randomUuid();
                         classId = 'id_' + id;
                         counter = {
+                            type: 'counter',
                             name: v,
                             id: id,
                             parent: counters[v][0].device,
@@ -195,6 +197,7 @@ angular.module( 'angularGanttDemoApp' )
                 counters = counters + 1;
 
                 return {
+                    type: 'counter',
                     name: 'Counter_' + ( '00' + counters ).slice( -3 ),
                     content: '店舗' + ( '00' + counters ).slice( -3 ),
                     classes: [classId, 'row-counter']
